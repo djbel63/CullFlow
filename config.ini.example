@@ -1,0 +1,94 @@
+; =====================================================================
+;  Configuración de CullFlow — Universal RAW Studio
+;  Las líneas que empiezan por ";" son comentarios.
+;  Valores sí/no: puedes escribir si / no (también true / false).
+; =====================================================================
+
+[carpetas]
+; Carpeta donde vuelcas la tarjeta SD (se usa en el modo vigilar y como
+; valor por defecto en la interfaz web). Ejemplo: C:\Fotos\SD
+entrada = 
+; Carpeta de salida. Si se deja vacía se usa  <entrada>\Revelado
+salida = 
+
+[agrupacion]
+; Máximo de segundos entre dos fotos para considerarlas de la misma serie.
+segundos_max_entre_fotos = 30.0
+; Similitud mínima (0 a 1) para que dos fotos se consideren "la misma".
+; Más alto = más estricto (menos fotos agrupadas).
+umbral_similitud = 0.8
+
+[seleccion]
+; Pesos de la puntuación para elegir la mejor foto de cada grupo.
+peso_nitidez = 0.55
+peso_exposicion = 0.2
+peso_ruido = 0.1
+peso_ojos = 0.15
+; Detectar caras y ojos abiertos (OpenCV, ligero). si / no
+detectar_caras = si
+
+[revelado]
+; Qué revelar: "mejores" (solo la elegida de cada grupo) o "todas".
+revelar = mejores
+; Formato de exportación: "jpeg", "webp" o "ambos".
+formato_salida = webp
+; Calidad JPEG de salida (1-100).
+calidad_jpeg = 89
+; Calidad WebP de salida (1-100, 90 ahorra ~40% de espacio con calidad idéntica).
+calidad_webp = 90
+; Guardar también un TIFF de 16 bits (archivos muy grandes). si / no
+guardar_tiff16 = no
+; Fuerza global de los ajustes automáticos en % (100 = normal, 50 = más suave).
+intensidad_auto = 100.0
+; Lado mayor máximo de la salida en píxeles (0 = resolución completa).
+max_lado = 0
+; Escribir el .xmp también junto al RAW original (no modifica el RAW,
+; solo crea un archivo nuevo al lado, útil para Lightroom). si / no
+xmp_junto_al_original = no
+; Algoritmo de demosaicing para RAW: aahd (recomendado, sin artefactos),
+; ahd (clásico), dcb (máximo detalle), dht (muy rápido), vng (fotos con mucho ruido).
+demosaic = aahd
+; Corrección automática de aberraciones cromáticas y halos púrpuras en bordes. si / no
+corregir_aberraciones = si
+; Incrustar perfil de color sRGB estándar en los archivos de salida. si / no
+incrustar_icc = si
+; Si disparas en RAW+JPEG y prefieres usar directamente la imagen JPEG procesada por la cámara
+; (con la ciencia de color del fabricante (Nikon, Sony, Canon, Fuji Film Sim)), pon "si".
+; Si pones "no" (por defecto), se revelará el archivo RAW calibrado fotográficamente. si / no
+preferir_jpg_camara = no
+
+[rendimiento]
+; Número de fotos reveladas en paralelo (0 = automático según núcleos y RAM).
+; Valores recomendados: 0 (auto), 2 o 4. Con menos de 16 GB de RAM se recomienda 1 o 2.
+trabajadores = 0
+; Número de hilos para el análisis rápido y generación de miniaturas (0 = automático).
+trabajadores_analisis = 0
+
+[vigilar]
+; Segundos sin archivos nuevos antes de empezar a procesar
+; (para dar tiempo a que termine la copia de la SD).
+espera_segundos = 10.0
+
+[ia]
+; Usar el modelo local (opcional). Si no responde, se usa el modo automático.
+activado = si
+api_base = http://127.0.0.1:11434/v1
+modelo = qwen2.5-vl:7b
+; Clave de API si tu servidor la pide (normalmente vacía).
+api_key = 
+; Enviar una vista previa de la foto al modelo: auto (detecta si el modelo
+; ve imágenes), si, no (solo se envían estadísticas numéricas).
+usar_imagen = auto
+; Pedir al modelo que elija la mejor foto de cada grupo (solo si ve imágenes).
+elegir_mejor = si
+; La IA solo puede cambiar la elegida por otra cuya puntuación técnica no sea
+; más de este margen inferior a la mejor (evita que elija una foto movida).
+margen_eleccion = 0.15
+; Lado mayor de la vista previa que se envía al modelo (píxeles).
+lado_preview = 768
+timeout_segundos = 90.0
+; Pide al modelo que no "piense" en voz alta (más rápido). si / no
+desactivar_razonamiento = si
+; Peticiones simultáneas a la IA (2 recomendado para enviar de 2 en 2 en flujo continuo
+; sin saturar la GPU y evitando tiempos muertos mientras la CPU procesa el revelado)
+concurrencia = 3

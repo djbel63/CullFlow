@@ -1,0 +1,46 @@
+# User local configuration (private paths and local servers)
+config.ini
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C environments
+.venv/
+env/
+venv/
+ENV/
+# Build and packaging
+paraGIT/
+dist/
+build/
+*.egg-info/
+
+# Revelador Nikon Runtime & Cache
+.revelador/
+*.tmp
+*.bak
+descartadas.txt
+informe.csv
+
+# User uploaded / Local output folders
+Revelado/
+output/
+samples/
+*.nef
+*.NEF
+*.nrw
+*.NRW
+*.dng
+*.DNG
+
+# IDE & OS
+.vscode/
+.idea/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+

@@ -1,0 +1,3087 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>CullFlow — AI RAW Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg-base: #0b0e14;
+    --bg-surface: #121720;
+    --bg-surface-elevated: #1a202c;
+    --bg-surface-hover: #222a38;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --nikon-gold: #f59e0b;
+    --nikon-gold-hover: #fbbf24;
+    --nikon-gold-dim: rgba(245, 158, 11, 0.15);
+    --accent-blue: #3b82f6;
+    --accent-blue-hover: #60a5fa;
+    --accent-blue-dim: rgba(59, 130, 246, 0.15);
+    --accent-emerald: #10b981;
+    --accent-rose: #ef4444;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.6);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-full: 9999px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+  body {
+    font-family: var(--font);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+
+  /* ------------------- HEADER ------------------- */
+  header {
+    height: 60px;
+    background: rgba(18, 23, 32, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    gap: 16px;
+    z-index: 40;
+    flex-shrink: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--nikon-gold), #d97706);
+    color: #000;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  }
+  .brand-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .brand-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--nikon-gold-dim);
+    color: var(--nikon-gold);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+  }
+
+  /* Folder selector pill */
+  .folder-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    max-width: 440px;
+  }
+  .folder-pill:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--border-strong);
+  }
+  .folder-pill .icon { color: var(--nikon-gold); font-size: 14px; }
+  .folder-pill .path-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Header Actions */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--border-strong);
+    color: #fff;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+  .btn-gold {
+    background: linear-gradient(135deg, var(--nikon-gold), #d97706);
+    border-color: var(--nikon-gold);
+    color: #000;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+  }
+  .btn-gold:hover {
+    background: linear-gradient(135deg, var(--nikon-gold-hover), var(--nikon-gold));
+    color: #000;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  }
+
+  .btn-blue {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+  }
+  .btn-blue:hover { background: var(--accent-blue-hover); }
+
+  .btn-icon {
+    padding: 7px 10px;
+  }
+
+  /* AI Status Indicator */
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+  .status-dot.online {
+    background: var(--accent-emerald);
+    box-shadow: 0 0 8px var(--accent-emerald);
+  }
+
+  /* ------------------- SUBHEADER / FILTER BAR ------------------- */
+  .subbar {
+    height: 44px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .subbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .filter-tabs {
+    display: flex;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 2px;
+  }
+  .filter-tab {
+    padding: 3px 12px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .filter-tab.active {
+    background: var(--bg-surface-elevated);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .filter-tab:hover:not(.active) { color: var(--text-primary); }
+
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-box input {
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    padding: 4px 10px 4px 26px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    width: 170px;
+    transition: all 0.15s ease;
+  }
+  .search-box input:focus {
+    width: 220px;
+    border-color: var(--nikon-gold);
+    outline: none;
+  }
+  .search-box .search-icon {
+    position: absolute;
+    left: 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    pointer-events: none;
+  }
+
+  .subbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .progress-bar-container {
+    width: 140px;
+    height: 6px;
+    background: var(--bg-base);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--nikon-gold), var(--accent-emerald));
+    transition: width 0.25s ease;
+  }
+
+  /* ------------------- MAIN LAYOUT ------------------- */
+  main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Photo Grid Section */
+  #vistaFotos {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  #vistaFotos::-webkit-scrollbar { width: 8px; }
+  #vistaFotos::-webkit-scrollbar-thumb { background: var(--bg-surface-elevated); border-radius: 4px; }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: var(--text-secondary);
+    text-align: center;
+    gap: 14px;
+  }
+  .empty-state .icon { font-size: 48px; opacity: 0.6; }
+  .empty-state h2 { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+  .empty-state p { font-size: 13px; max-width: 420px; color: var(--text-muted); line-height: 1.5; }
+
+  /* Group Card */
+  .grupo-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.15s ease;
+  }
+  .grupo-card:hover {
+    border-color: var(--border-strong);
+  }
+  .grupo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .grupo-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .grupo-pill {
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+  }
+  .grupo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  /* Photo Card */
+  .foto-card {
+    background: var(--bg-base);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+  }
+  .foto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+  }
+  .foto-card.elegida {
+    border-color: var(--nikon-gold);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+  }
+  .foto-card.activa {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+  }
+
+  .foto-thumb-wrap {
+    width: 100%;
+    aspect-ratio: 3/2;
+    background: #000;
+    overflow: hidden;
+    position: relative;
+  }
+  .foto-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+  .foto-card:hover .foto-thumb-wrap img {
+    transform: scale(1.02);
+  }
+
+  /* Floating Card Badges */
+  .badge-elegida {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: var(--nikon-gold);
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 5;
+  }
+  .badge-revelada {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--accent-emerald);
+    color: #fff;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 5;
+  }
+  .badge-raw {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    color: #e2e8f0;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
+    z-index: 5;
+  }
+  .badge-cat {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: var(--nikon-gold);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    z-index: 5;
+    text-transform: uppercase;
+  }
+
+  .foto-info {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: var(--bg-surface);
+  }
+  .foto-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .foto-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ------------------- MODAL GRANDE DE EDICIÓN FOTOGRÁFICA ------------------- */
+  #modalEditor.modal-backdrop {
+    z-index: 85;
+    padding: 12px;
+  }
+  .editor-window {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 70px rgba(0,0,0,0.85);
+    width: 96vw;
+    max-width: 1720px;
+    height: 94vh;
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .editor-header {
+    height: 52px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    flex-shrink: 0;
+  }
+  .editor-header-title {
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+  }
+  .editor-nav-center {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .editor-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .editor-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Lienzo grande a la izquierda */
+  .editor-canvas-pane {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    background: #06080d;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .canvas-toolbar {
+    height: 44px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(18, 23, 32, 0.7);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+  }
+
+  .vista-container {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    background: #040507;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  .vista-container img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    box-shadow: 0 0 35px rgba(0,0,0,0.85);
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  #vista {
+    position: relative;
+    z-index: 2;
+  }
+  #vistaAntes {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    z-index: 1;
+    box-shadow: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  #separadorCortina {
+    position: absolute;
+    width: 2px;
+    background: var(--nikon-gold);
+    display: none;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 0 8px rgba(0,0,0,0.9), 0 0 4px rgba(255,200,0,0.7);
+  }
+  #separadorCortina .asa {
+    position: absolute;
+    top: 50%;
+    left: -15px;
+    transform: translateY(-50%);
+    background: var(--nikon-gold);
+    color: #000;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 6px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    white-space: nowrap;
+    user-select: none;
+    pointer-events: auto;
+    cursor: ew-resize;
+  }
+  .etiqueta-cortina {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgba(8, 10, 15, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 3px 8px;
+    border-radius: 4px;
+    z-index: 12;
+    display: none;
+    pointer-events: none;
+    user-select: none;
+  }
+  #etiqAntes { color: #94a3b8; }
+  #etiqDespues { color: var(--nikon-gold); }
+
+  /* Footer bar debajo de la foto: Histograma + EXIF */
+  .canvas-footer-bar {
+    padding: 8px 16px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .canvas-footer-bar .hist-box {
+    width: 220px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+  .canvas-footer-bar .exif-strip {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Popover flotante de Lupa 1:1 */
+  .zoom-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 20, 28, 0.96);
+    border: 2px solid var(--nikon-gold);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 45px rgba(0,0,0,0.9);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    width: 560px;
+    max-width: 90vw;
+  }
+  .zoom-header {
+    height: 38px;
+    padding: 0 12px;
+    background: var(--bg-surface-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .zoom-body-wrap {
+    position: relative;
+    width: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #zoomImg {
+    width: 100%;
+    height: auto;
+    max-height: 480px;
+    display: block;
+    object-fit: contain;
+  }
+  .zoom-crosshair {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .zoom-crosshair::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 0;
+    width: 2px;
+    height: 20px;
+    background: var(--nikon-gold);
+    box-shadow: 0 0 3px #000;
+  }
+  .zoom-crosshair::after {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 0;
+    height: 2px;
+    width: 20px;
+    background: var(--nikon-gold);
+    box-shadow: 0 0 3px #000;
+  }
+
+  /* Panel lateral de controles a la derecha */
+  .editor-sidebar-pane {
+    width: 380px;
+    min-width: 380px;
+    max-width: 380px;
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex-shrink: 0;
+  }
+  .editor-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .editor-scroll::-webkit-scrollbar { width: 6px; }
+  .editor-scroll::-webkit-scrollbar-thumb { background: var(--bg-surface-hover); border-radius: 3px; }
+
+  /* Metadata Strip */
+  .exif-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .exif-chip {
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .exif-chip strong { color: var(--text-primary); }
+
+  /* Histogram */
+  .hist-box {
+    position: relative;
+    width: 100%;
+    height: 64px;
+    background: #0f131a;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  #canvasHist { width: 100%; height: 100%; display: block; }
+  .hist-clip-badge {
+    position: absolute;
+    top: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  #clipSombras {
+    left: 6px;
+    color: #60a5fa;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+  }
+  #clipAltas {
+    right: 6px;
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+  }
+
+  /* Toolbar buttons */
+  .tool-strip {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .tool-strip .btn.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+  }
+
+  /* Presets Bar */
+  .presets-strip {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .presets-strip::-webkit-scrollbar { height: 4px; }
+  .presets-strip::-webkit-scrollbar-thumb { background: var(--border-subtle); }
+  .preset-chip {
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .preset-chip:hover {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  /* Slider Sections */
+  .control-section {
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .control-section-header {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .control-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 48px;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+  }
+  .control-label {
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .control-value {
+    text-align: right;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11px;
+    color: var(--text-primary);
+  }
+
+  /* Custom Range Slider Styling */
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #2a3240;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    border: 2px solid #1a202c;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  input[type=range]:hover::-webkit-slider-thumb {
+    transform: scale(1.15);
+    background: var(--nikon-gold);
+  }
+
+  /* Editor Footer */
+  .editor-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .editor-footer-row {
+    display: flex;
+    gap: 8px;
+  }
+  .editor-footer-row .btn { flex: 1; justify-content: center; }
+
+  /* ------------------- MODAL DIALOGS (AJUSTES & ATAJOS) ------------------- */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal-window {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 760px;
+    height: 85vh;
+    max-height: 85vh;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    height: 56px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    flex-shrink: 0;
+  }
+  .modal-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .modal-tabs {
+    width: 180px;
+    background: var(--bg-base);
+    border-right: 1px solid var(--border-subtle);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .modal-tab-btn {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-tab-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+  .modal-tab-btn.active {
+    background: var(--bg-surface-elevated);
+    color: var(--nikon-gold);
+    font-weight: 600;
+  }
+
+  .modal-content {
+    flex: 1;
+    min-height: 0;
+    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) rgba(0, 0, 0, 0.25);
+  }
+  .modal-content::-webkit-scrollbar { width: 8px; }
+  .modal-content::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); border-radius: 4px; }
+  .modal-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); border-radius: 4px; }
+  .modal-content::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.38); }
+
+  .cfg-panel {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cfg-panel.active { display: flex; }
+
+  .cfg-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .cfg-group-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .cfg-group-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .cfg-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    gap: 12px;
+  }
+  .cfg-field > label:not(.switch) {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+  .cfg-field input[type=text],
+  .cfg-field select {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+  }
+  .cfg-field input[type=text] { width: 240px; }
+  .cfg-field select { min-width: 140px; }
+
+  
+  /* Language Switcher */
+  .lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+  .lang-btn:hover {
+    color: var(--text-primary);
+  }
+  .lang-btn.active {
+    background: var(--nikon-gold);
+    color: #111827;
+    font-weight: 700;
+  }
+
+  /* Custom Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px !important;
+    height: 24px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    flex: 0 0 44px !important;
+    flex-shrink: 0 !important;
+    margin: 0;
+    vertical-align: middle;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+  .slider-toggle {
+    position: absolute;
+    inset: 0;
+    background-color: #334155;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .slider-toggle:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    top: 2px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  input:checked + .slider-toggle {
+    background-color: var(--nikon-gold);
+    border-color: var(--nikon-gold);
+  }
+  input:checked + .slider-toggle:before {
+    transform: translateX(20px);
+    background-color: #ffffff;
+  }
+
+  .modal-footer {
+    height: 56px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    flex-shrink: 0;
+  }
+
+  /* Toast Notification */
+  #toastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: rgba(18, 23, 32, 0.95);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: auto;
+    animation: toastIn 0.2s ease, toastOut 0.2s ease 2.8s forwards;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(6px); } }
+
+  /* Log Drawer (Collapsible) */
+  #logDrawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 480px;
+    height: 140px;
+    background: rgba(14, 17, 23, 0.96);
+    border-top: 1px solid var(--border-strong);
+    display: none;
+    flex-direction: column;
+    z-index: 25;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  #logDrawer.open { display: flex; }
+  .log-header {
+    height: 28px;
+    background: var(--bg-surface-elevated);
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .log-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header>
+  <div class="brand">
+    <div class="brand-logo" style="font-size:16px;">⚡</div>
+    <div class="brand-title">
+      CullFlow
+      <span class="brand-badge">AI STUDIO</span>
+    </div>
+  </div>
+
+  <!-- Folder Picker Pill -->
+  <div class="folder-pill" onclick="elegirCarpeta()" title="Clic para elegir carpeta de fotos">
+    <span class="icon">📁</span>
+    <span class="path-text" id="headerPath">Elige la carpeta donde has descargado la SD…</span>
+    <button class="btn btn-icon" style="padding:2px 8px;font-size:10px;height:20px;">Cambiar</button>
+  </div>
+
+  <div class="header-actions">
+    <!-- Language Switcher -->
+    <div class="lang-switcher" title="Switch Language / Cambiar Idioma">
+      <button type="button" class="lang-btn active" id="btnLangEs" onclick="setCullFlowLang('es')">ES</button>
+      <button type="button" class="lang-btn" id="btnLangEn" onclick="setCullFlowLang('en')">EN</button>
+    </div>
+
+    <!-- AI Status Pill -->
+    <div class="status-pill" id="aiStatusPill" title="Estado de la IA local">
+      <div class="status-dot" id="aiDot"></div>
+      <span id="aiLabel">IA: Verificando…</span>
+    </div>
+
+    <button class="btn btn-icon" onclick="abrirAjustes()" title="Configuración completa (Ajustes)">
+      ⚙️ Ajustes
+    </button>
+    <button class="btn btn-icon" onclick="abrirAtajos()" title="Atajos de teclado rápidos (?)">
+      ⌨️
+    </button>
+    <button class="btn" onclick="abrirSalida()" title="Abrir la carpeta de salida en el explorador">
+      📂 Salida
+    </button>
+    <button class="btn btn-gold" id="btnProcesar" onclick="procesar(false)">
+      ▶ Procesar Fotos
+    </button>
+  </div>
+</header>
+
+<!-- SUBBAR (FILTROS Y PROGRESO) -->
+<div class="subbar">
+  <div class="subbar-left">
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <div class="filter-tab active" data-filter="todas" onclick="setFiltro('todas')"><span data-i18n="tab_all">Todas</span> (<span id="cntTodas">0</span>)</div>
+      <div class="filter-tab" data-filter="elegidas" onclick="setFiltro('elegidas')"><span data-i18n="tab_picks">★ Elegidas</span> (<span id="cntElegidas">0</span>)</div>
+      <div class="filter-tab" data-filter="rafagas" onclick="setFiltro('rafagas')"><span data-i18n="tab_bursts">👥 Ráfagas</span> (<span id="cntRafagas">0</span>)</div>
+      <div class="filter-tab" data-filter="reveladas" onclick="setFiltro('reveladas')"><span data-i18n="tab_developed">✓ Reveladas</span> (<span id="cntReveladas">0</span>)</div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="busqueda" data-i18n-placeholder="search_placeholder" placeholder="Buscar por nombre..." oninput="filtrarFotos()">
+    </div>
+  </div>
+
+  <div class="subbar-right">
+    <div class="progress-wrap">
+      <span id="faseTxt" style="font-weight:600;color:var(--text-primary)">Listo</span>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="barraFill"></div>
+      </div>
+      <span id="progresoDetalle"></span>
+    </div>
+
+    <button class="btn btn-icon" style="padding:2px 7px;font-size:10px;" onclick="toggleLog()" title="Ver registro de eventos">
+      📋 Log
+    </button>
+    <button class="btn btn-icon" style="padding:2px 7px;font-size:10px;" onclick="procesar(true)" title="Re-procesar todas las fotos">
+      ↻ Repetir
+    </button>
+  </div>
+</div>
+
+<!-- MAIN VIEWPORT -->
+<main>
+  <!-- Left/Center: Photo Grid -->
+  <section id="vistaFotos">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">📷</div>
+      <h2>Ninguna carpeta seleccionada</h2>
+      <p>Selecciona la carpeta donde has volcado tus fotos RAW (Sony, Canon, Nikon, Fujifilm, OM/Olympus, Panasonic, Leica o DNG). CullFlow agrupará las ráfagas en secuencias inteligentes y evaluará nitidez y expresiones con IA local privada.</p>
+      <button class="btn btn-gold" onclick="elegirCarpeta()" style="padding:10px 20px;font-size:13px;">
+        📁 Seleccionar Carpeta de Fotos
+      </button>
+    </div>
+    <div id="gridContenedor" style="display:none;flex-direction:column;gap:20px;"></div>
+  </section>
+</main>
+
+<!-- ==================== MODAL GRANDE DE EDICIÓN FOTOGRÁFICA ==================== -->
+<div class="modal-backdrop" id="modalEditor">
+  <div class="editor-window">
+    <div class="editor-header">
+      <div class="editor-header-title">
+        <span class="brand-badge" style="background:var(--nikon-gold-dim);color:var(--nikon-gold)">CULLFLOW STUDIO</span>
+        <span id="edNombre">Foto</span>
+        <span id="edOrigenBadge" class="grupo-pill">auto</span>
+      </div>
+      <div class="editor-nav-center">
+        <button class="btn btn-icon" onclick="navegarFoto(-1)" title="Foto anterior (◄)">◄</button>
+        <span id="edContadorFotos" style="font-weight:600;min-width:100px;text-align:center">Foto 1 de 1</span>
+        <button class="btn btn-icon" onclick="navegarFoto(1)" title="Foto siguiente (►)">►</button>
+      </div>
+      <div class="editor-header-actions">
+        <button class="btn btn-gold" onclick="exportar()" title="Re-exportar foto con ajustes (E)">💾 Re-exportar</button>
+        <button class="btn btn-icon" onclick="cerrarEditor()" title="Cerrar editor (Esc)" style="font-size:13px;padding:6px 12px">✕ Cerrar</button>
+      </div>
+    </div>
+
+    <div class="editor-body">
+      <!-- Left: Giant Photo Canvas Area -->
+      <div class="editor-canvas-pane">
+        <div class="canvas-toolbar">
+          <div class="tool-strip">
+            <button class="btn" id="btnCortina" onclick="toggleCortina()">🌓 Cortina</button>
+            <button class="btn" id="btnAntes" onmousedown="verAntes(true)" onmouseup="verAntes(false)" onmouseleave="verAntes(false)"><span data-i18n="btn_original_hold">Mantén: neutro</span></button>
+            <button class="btn" id="btnClip" onclick="toggleClipping()">⚠️ Zebras</button>
+            <button class="btn" id="btnLupa" onclick="activarLupa()"><span data-i18n="btn_loupe">🔍 Lupa 1:1</span></button>
+            <button class="btn" onclick="verRevelada()">👁️ Exportada</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">
+            Atajos: <kbd>◄/►</kbd> navegar • <kbd>1-6</kbd> presets • <kbd>C</kbd> cortina • <kbd>Z</kbd> zebras • <kbd>Esc</kbd> salir
+          </div>
+        </div>
+
+        <div class="vista-container" id="wrapVista">
+          <img id="vista" alt="Vista previa revelada" onclick="if(cursorLupaActivo) hacerZoom(event)" draggable="false">
+          <img id="vistaAntes" alt="Vista previa antes" draggable="false">
+          <div id="separadorCortina"><div class="asa">◄ ►</div></div>
+          <span class="etiqueta-cortina" id="etiqAntes">ORIGINAL</span>
+          <span class="etiqueta-cortina" id="etiqDespues">REVELADO</span>
+
+          <!-- 1:1 Loupe Zoom Floating Popup -->
+          <div class="zoom-overlay" id="zoomOverlay">
+            <div class="zoom-header">
+              <span>🔍 Recorte al 100% de píxeles reales (Sensor 1:1)</span>
+              <button class="btn btn-icon" style="padding:2px 8px;" onclick="cerrarZoom()">✕</button>
+            </div>
+            <div class="zoom-body-wrap">
+              <img id="zoomImg" alt="Recorte 1:1">
+              <div class="zoom-crosshair"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="canvas-footer-bar">
+          <div class="hist-box">
+            <canvas id="canvasHist" width="220" height="64"></canvas>
+            <span class="hist-clip-badge" id="clipSombras" onclick="toggleClipping()" title="Subexposición (negros empastados)">▲ Sombras</span>
+            <span class="hist-clip-badge" id="clipAltas" onclick="toggleClipping()" title="Sobreexposición (luces quemadas)">▲ Luces</span>
+          </div>
+          <div class="exif-strip" id="edExif"></div>
+        </div>
+      </div>
+
+      <!-- Right: Photographic Controls Sidebar -->
+      <div class="editor-sidebar-pane">
+        <div class="editor-scroll">
+          <!-- Presets Chips -->
+          <div style="font-size:11px;font-weight:600;color:var(--text-secondary);display:flex;justify-content:space-between;">
+            <span>Estilos Rápidos (Presets):</span>
+            <span style="color:var(--text-muted);font-weight:400">1 clic (teclas 1-6)</span>
+          </div>
+          <div class="presets-strip">
+            <button class="preset-chip" onclick="aplicarPreset('neutro')">Neutro</button>
+            <button class="preset-chip" onclick="aplicarPreset('retrato')">Retrato Suave</button>
+            <button class="preset-chip" onclick="aplicarPreset('paisaje')">Paisaje Vívido</button>
+            <button class="preset-chip" onclick="aplicarPreset('bn')">B&N Dramático</button>
+            <button class="preset-chip" onclick="aplicarPreset('dorada')">Hora Dorada</button>
+            <button class="preset-chip" onclick="aplicarPreset('noche')">Noche Limpia</button>
+          </div>
+
+          <!-- Sliders Sections -->
+          <div class="control-section">
+            <div class="control-section-header" data-i18n="sec_light">☀️ Luz y Rango Dinámico</div>
+            <div id="controlesLuz"></div>
+          </div>
+
+          <div class="control-section">
+            <div class="control-section-header" data-i18n="sec_color">🎨 Color y Balance</div>
+            <div id="controlesColor"></div>
+          </div>
+
+          <div class="control-section">
+            <div class="control-section-header" data-i18n="sec_detail">🔍 Detalle, Óptica y Viñeteo</div>
+            <div id="controlesDetalle"></div>
+          </div>
+        </div>
+
+        <div class="editor-footer">
+          <div class="editor-footer-row">
+            <button class="btn btn-gold" onclick="exportar()">💾 Re-exportar Foto</button>
+            <button class="btn" onclick="restablecer()">↺ Auto</button>
+          </div>
+          <div class="editor-footer-row">
+            <button class="btn" onclick="copiarAjustes()" title="Copiar ajustes">📋 Copiar</button>
+            <button class="btn" onclick="pegarAjustes()" title="Pegar ajustes">📌 Pegar</button>
+            <button class="btn" onclick="pegarEnGrupo()" title="Aplicar ajustes a todas las fotos de esta ráfaga">👥 En toda la ráfaga</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COLLAPSIBLE LOG DRAWER -->
+<div id="logDrawer">
+  <div class="log-header">
+    <span>Registro de eventos del revelador</span>
+    <button class="btn btn-icon" style="padding:1px 6px;font-size:10px" onclick="toggleLog()">✕</button>
+  </div>
+  <div class="log-body" id="logContenido"></div>
+</div>
+
+<!-- ==================== MODAL DE AJUSTES ==================== -->
+<div class="modal-backdrop" id="modalAjustes">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>⚙️</span>
+        <span>Ajustes de CullFlow</span>
+      </div>
+      <button class="btn btn-icon" onclick="cerrarAjustes()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Tabs Navigation -->
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" data-tab="tabCarpetas" onclick="setAjustesTab('tabCarpetas')"><span data-i18n="tab_cfg_folders">📁 Carpetas & Salida</span></button>
+        <button class="modal-tab-btn" data-tab="tabRevelado" onclick="setAjustesTab('tabRevelado')">📸 Revelado & Color</button>
+        <button class="modal-tab-btn" data-tab="tabIA" onclick="setAjustesTab('tabIA')"><span data-i18n="tab_cfg_ai">🤖 Inteligencia Artificial</span></button>
+        <button class="modal-tab-btn" data-tab="tabRendimiento" onclick="setAjustesTab('tabRendimiento')"><span data-i18n="tab_cfg_perf">⚡ Rendimiento</span></button>
+        <button class="modal-tab-btn" data-tab="tabAgrupacion" onclick="setAjustesTab('tabAgrupacion')"><span data-i18n="tab_cfg_bursts">🎯 Agrupación & Ráfagas</span></button>
+      </div>
+
+      <!-- Tab Content Panels -->
+      <div class="modal-content">
+        <!-- Tab 1: Carpetas & Salida -->
+        <div class="cfg-panel active" id="tabCarpetas">
+          <div class="cfg-group">
+            <div class="cfg-group-title">Carpetas por Defecto</div>
+            <div class="cfg-group-desc">Rutas predeterminadas de lectura y exportación de imágenes.</div>
+          </div>
+          <div class="cfg-field">
+            <label>Carpeta de entrada (SD / Fotos):</label>
+            <input type="text" id="cfg_entrada" placeholder="Ej: D:\Fotos\Vacaciones">
+          </div>
+          <div class="cfg-field">
+            <label>Carpeta de salida (vacío = &lt;entrada&gt;\Revelado):</label>
+            <input type="text" id="cfg_salida" placeholder="Ej: D:\Fotos\Reveladas">
+          </div>
+
+          <div class="cfg-group" style="margin-top:10px">
+            <div class="cfg-group-title">Formato de Exportación</div>
+            <div class="cfg-group-desc">Elige el formato de archivo final. WebP reduce hasta un 45% el tamaño con la misma calidad que JPEG.</div>
+          </div>
+          <div class="cfg-field">
+            <label>Formato de salida:</label>
+            <select id="cfg_formato_salida">
+              <option value="jpeg">JPEG (.jpg)</option>
+              <option value="webp">WebP (.webp - Recomendado)</option>
+              <option value="ambos">Ambos (JPEG + WebP)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <label>Calidad JPEG (1 a 100): <strong id="val_calidad_jpeg">95</strong></label>
+            <input type="range" id="cfg_calidad_jpeg" min="70" max="100" step="1" oninput="$('val_calidad_jpeg').textContent=this.value">
+          </div>
+          <div class="cfg-field">
+            <label>Calidad WebP (1 a 100): <strong id="val_calidad_webp">90</strong></label>
+            <input type="range" id="cfg_calidad_webp" min="70" max="100" step="1" oninput="$('val_calidad_webp').textContent=this.value">
+          </div>
+          <div class="cfg-field">
+            <label>Guardar también copia TIFF de 16 bits sin pérdidas:</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_guardar_tiff16">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>Escribir archivo .xmp junto al RAW original (para Lightroom / Darktable):</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_xmp_junto_al_original">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tab 2: Revelado & Color -->
+        <div class="cfg-panel" id="tabRevelado">
+          <div class="cfg-group">
+            <div class="cfg-group-title">Ciencia de Color y Algoritmos de Imagen</div>
+            <div class="cfg-group-desc">Ajusta cómo LibRaw y el revelador procesan la información del sensor RAW (Sony, Canon, Nikon, Fuji, Leica, DNG).</div>
+          </div>
+          <div class="cfg-field">
+            <label>Algoritmo Demosaicing RAW:</label>
+            <select id="cfg_demosaic">
+              <option value="aahd">AAHD (Recomendado - Sin artefactos de color ni moiré)</option>
+              <option value="ahd">AHD (Clásico contrastado)</option>
+              <option value="dcb">DCB (Máximo detalle de color)</option>
+              <option value="dht">DHT (Ultra rápido)</option>
+              <option value="vng">VNG (Suave para ISOs extremos)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <label>Corrección automática de aberraciones cromáticas y halos púrpuras:</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_corregir_aberraciones">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>Incrustar perfil de color ICC estándar sRGB (fidelidad en todas las pantallas):</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_incrustar_icc">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>Preferir JPEG procesado por cámara (Picture Control Nikon EXPEED en parejas RAW+JPG):</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_preferir_jpg_camara">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>Intensidad de ajustes automáticos (%): <strong id="val_intensidad_auto">100</strong></label>
+            <input type="range" id="cfg_intensidad_auto" min="0" max="150" step="5" oninput="$('val_intensidad_auto').textContent=this.value">
+          </div>
+          <div class="cfg-field">
+            <label>Lado mayor máximo (píxeles, 0 = resolución completa):</label>
+            <input type="text" id="cfg_max_lado" placeholder="0 = tamaño real, ej: 3840 para 4K">
+          </div>
+        </div>
+
+        <!-- Tab 3: Inteligencia Artificial -->
+        <div class="cfg-panel" id="tabIA">
+          <div class="cfg-group">
+            <div class="cfg-group-title">Integración con Modelo Local (Vision LLM)</div>
+            <div class="cfg-group-desc">Permite a un modelo visual (ej: Qwen-VL) inspeccionar las fotos para refinar la estética y seleccionar las mejores expresiones.</div>
+          </div>
+          <div class="cfg-field">
+            <label>Activar asistencia con IA local:</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_ia_activado">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>URL del servidor API (OpenAI compatible):</label>
+            <input type="text" id="cfg_ia_api_base" placeholder="http://127.0.0.1:11434/v1">
+          </div>
+          <div class="cfg-field">
+            <label>Nombre del modelo:</label>
+            <input type="text" id="cfg_ia_modelo" placeholder="qwen2.5-vl:7b">
+          </div>
+          <div class="cfg-field">
+            <label>Clave API (opcional):</label>
+            <input type="text" id="cfg_ia_api_key" placeholder="Dejar vacío si no requiere">
+          </div>
+          <div class="cfg-field">
+            <label>Concurrencia IA en pipeline (peticiones simultáneas a GPU): <strong id="val_ia_concurrencia">2</strong></label>
+            <input type="range" id="cfg_ia_concurrencia" min="1" max="4" step="1" oninput="$('val_ia_concurrencia').textContent=this.value">
+          </div>
+          <div class="cfg-field">
+            <label>Usar imágenes en la consulta (visión):</label>
+            <select id="cfg_ia_usar_imagen">
+              <option value="auto">Automático (Detecta si el modelo soporta visión)</option>
+              <option value="si">Siempre sí</option>
+              <option value="no">Solo estadísticas numéricas</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <label>Permitir a la IA elegir la mejor foto de la ráfaga:</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_ia_elegir_mejor">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>Desactivar razonamiento / thinking en voz alta (más rápido):</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_ia_sin_razonamiento">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:6px">
+            <button class="btn btn-blue" onclick="probarConexionIA()">⚡ Probar Conexión con IA Ahora</button>
+          </div>
+        </div>
+
+        <!-- Tab 4: Rendimiento -->
+        <div class="cfg-panel" id="tabRendimiento">
+          <div class="cfg-group">
+            <div class="cfg-group-title">Aceleración Multinúcleo</div>
+            <div class="cfg-group-desc">Controla los hilos de CPU utilizados en cada etapa del procesamiento.</div>
+          </div>
+          <div class="cfg-field">
+            <label>Hilos para revelado RAW completo (0 = automático según CPU):</label>
+            <select id="cfg_trabajadores">
+              <option value="0">Automático (Recomendado según RAM/CPU)</option>
+              <option value="1">1 hilo (Bajo consumo de memoria)</option>
+              <option value="2">2 hilos en paralelo</option>
+              <option value="3">3 hilos en paralelo</option>
+              <option value="4">4 hilos en paralelo (Máximo recomendado)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <label>Hilos para análisis inicial y miniaturas (0 = automático):</label>
+            <select id="cfg_trabajadores_analisis">
+              <option value="0">Automático (Hasta 8 hilos ultrarrápidos)</option>
+              <option value="2">2 hilos</option>
+              <option value="4">4 hilos</option>
+              <option value="8">8 hilos</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tab 5: Agrupación & Ráfagas -->
+        <div class="cfg-panel" id="tabAgrupacion">
+          <div class="cfg-group">
+            <div class="cfg-group-title">Algoritmo de Detección de Ráfagas</div>
+            <div class="cfg-group-desc">Controla cómo se identifican tomas consecutivas casi idénticas.</div>
+          </div>
+          <div class="cfg-field">
+            <label>Tiempo máximo entre fotos de una ráfaga (segundos):</label>
+            <input type="text" id="cfg_segundos_max" placeholder="30">
+          </div>
+          <div class="cfg-field">
+            <label>Umbral de similitud visual (0.50 a 0.99): <strong id="val_umbral_similitud">0.80</strong></label>
+            <input type="range" id="cfg_umbral_similitud" min="0.50" max="0.95" step="0.05" oninput="$('val_umbral_similitud').textContent=parseFloat(this.value).toFixed(2)">
+          </div>
+
+          <div class="cfg-group" style="margin-top:10px">
+            <div class="cfg-group-title">Criterios de Elección de la Mejor Toma</div>
+          </div>
+          <div class="cfg-field">
+            <label>Detección de caras y ojos abiertos:</label>
+            <label class="switch">
+              <input type="checkbox" id="cfg_detectar_caras">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <div class="cfg-field">
+            <label>Peso de la Nitidez (enfoque): <strong id="val_peso_nitidez">55%</strong></label>
+            <input type="range" id="cfg_peso_nitidez" min="0" max="1" step="0.05" oninput="$('val_peso_nitidez').textContent=Math.round(this.value*100)+'%'">
+          </div>
+          <div class="cfg-field">
+            <label>Peso de Ojos Abiertos: <strong id="val_peso_ojos">15%</strong></label>
+            <input type="range" id="cfg_peso_ojos" min="0" max="1" step="0.05" oninput="$('val_peso_ojos').textContent=Math.round(this.value*100)+'%'">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="restablecerAjustesRecomendados()" data-i18n="cfg_btn_reset">Restablecer Recomendados</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="cerrarAjustes()" data-i18n="cfg_btn_cancel">Cancelar</button>
+        <button class="btn btn-gold" onclick="guardarAjustes()" data-i18n="cfg_btn_save">💾 Guardar Ajustes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL DE ATAJOS DE TECLADO ==================== -->
+<div class="modal-backdrop" id="modalAtajos">
+  <div class="modal-window" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title"><span>⌨️</span> Atajos de Teclado Profesionales</div>
+      <button class="btn btn-icon" onclick="cerrarAtajos()">✕</button>
+    </div>
+    <div class="modal-content" style="padding:16px;">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+        <div class="cfg-field"><span>Navegar entre fotos</span><kbd class="btn btn-icon">◄ / ►</kbd></div>
+        <div class="cfg-field"><span>Lupa de enfoque 1:1</span><kbd class="btn btn-icon">Espacio</kbd></div>
+        <div class="cfg-field"><span>Comparador Cortina Antes/Después</span><kbd class="btn btn-icon">C</kbd></div>
+        <div class="cfg-field"><span>Avisos de Recorte (Zebras)</span><kbd class="btn btn-icon">Z</kbd></div>
+        <div class="cfg-field"><span>Marcar como Elegida del grupo</span><kbd class="btn btn-icon">P</kbd></div>
+        <div class="cfg-field"><span>Re-exportar foto con ajustes</span><kbd class="btn btn-icon">E</kbd></div>
+        <div class="cfg-field"><span>Presets rápidos de 1 clic</span><kbd class="btn btn-icon">1 al 6</kbd></div>
+        <div class="cfg-field"><span>Cerrar editor o ventanas</span><kbd class="btn btn-icon">Esc</kbd></div>
+        <div class="cfg-field"><span>Abrir esta ayuda</span><kbd class="btn btn-icon">?</kbd></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end">
+      <button class="btn btn-gold" onclick="cerrarAtajos()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer"></div>
+
+<script>
+let AJ = [], actual = null, valores = {}, temporizador = null, ultimaFase = "";
+let modoClipping = false, modoCortina = false, cortinaPct = 50, GS = [], todasFotosPlanitas = [];
+let filtroActivo = "todas", cfgActual = {};
+let cacheNeutroClave = null, cacheNeutroBlob = null, arrastrandoCortina = false;
+const $ = id => document.getElementById(id);
+
+async function api(url, datos) {
+  const r = await fetch(url, datos === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(datos)});
+  if (!r.ok) { let t = await r.text(); try { t = JSON.parse(t).error || t; } catch(e) {} throw new Error(t); }
+  return r.headers.get("content-type").includes("json") ? r.json() : r.blob();
+}
+
+function toast(msg) {
+  const c = $("toastContainer");
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function url(base, clave) {
+  return base + clave.split("/").map(encodeURIComponent).join("/") + "?t=" + Date.now();
+}
+
+
+/* ---------------- MULTILINGUAL ENGINE (i18n) ---------------- */
+const CullFlowI18N = {
+  es: {
+    app_title: "CullFlow — AI RAW Studio",
+    header_folder_placeholder: "Elige la carpeta donde has descargado tus fotos RAW...",
+    header_btn_change: "Cambiar",
+    ai_checking: "IA: Verificando…",
+    ai_connected: "IA: Conectada",
+    ai_offline: "IA: Desconectada",
+    ai_standby: "IA: En espera",
+    btn_settings: "⚙️ Ajustes",
+    btn_output: "📂 Salida",
+    btn_process: "▶ Procesar Fotos",
+    btn_cancel: "⏹ Cancelar",
+    btn_log: "📋 Log",
+    btn_reprocess: "↻ Re-procesar",
+    tab_all: "Todas",
+    tab_picks: "★ Elegidas",
+    tab_bursts: "👥 Ráfagas",
+    tab_developed: "✓ Reveladas",
+    search_placeholder: "Buscar por nombre...",
+    status_ready: "Listo",
+    status_inspecting: "Inspeccionando fotos...",
+    status_analyzing: "Analizando ráfagas con IA...",
+    status_developing: "Revelando fotos...",
+    empty_analyzing_title: "Analizando fotos en paralelo…",
+    empty_analyzing_desc: "Leyendo miniaturas y metadatos desde tu carpeta. Las tomas irán apareciendo aquí automáticamente segundo a segundo.",
+    empty_title: "Ninguna carpeta seleccionada",
+    empty_desc: "Selecciona la carpeta donde has volcado tus fotos RAW (Sony, Canon, Nikon, Fuji, Leica, Olympus, Panasonic o DNG). CullFlow agrupará las ráfagas en secuencias inteligentes y evaluará nitidez y rostros con IA local privada.",
+    empty_btn_folder: "📂 Seleccionar Carpeta RAW",
+    empty_btn_cfg: "⚙️ Configurar Ajustes",
+    burst: "Ráfaga",
+    single_shot: "Toma única",
+    photo: "foto",
+    photos: "fotos",
+    origin_manual: "elegida manualmente",
+    origin_ai: "elegida por IA",
+    origin_auto: "elegida automática",
+    badge_selected: "★ ELEGIDA",
+    badge_developed: "✓ REVELADA",
+    editor_title: "CULLFLOW STUDIO",
+    btn_reexport: "⚡ Re-exportar",
+    btn_close: "✕ Cerrar",
+    btn_curtain: "◫ Cortina",
+    btn_original_hold: "Mantén: neutro",
+    btn_zebras: "🦓 Zebras",
+    btn_loupe: "🔍 Lupa 1:1",
+    btn_developed_view: "🖼️ Exportada",
+    loupe_title: "🔍 Recorte al 100% de píxeles reales (Sensor 1:1)",
+    label_original: "ORIGINAL",
+    label_developed: "REVELADO",
+    clip_shadows: "◀ Sombras",
+    clip_highlights: "Luces ▶",
+    presets_title: "Estilos Rápidos (Presets):",
+    preset_keys_hint: "1 clic (teclas 1-6)",
+    preset_neutral: "Neutro",
+    preset_portrait: "Retrato Suave",
+    preset_landscape: "Paisaje Vívido",
+    preset_bw: "B&N Dramático",
+    preset_golden: "Hora Dorada",
+    preset_night: "Noche Limpia",
+    sec_light: "☀️ Luz y Rango Dinámico",
+    sec_color: "🎨 Color y Balance",
+    sec_detail: "🔍 Detalle, Óptica y Viñeteo",
+    btn_auto_reset: "↺ Auto",
+    btn_copy: "⎘ Copiar",
+    btn_paste: "📋 Pegar",
+    btn_apply_burst: "⚡ En toda la ráfaga",
+    log_title: "Registro de eventos de CullFlow",
+    settings_title: "Ajustes de CullFlow",
+    tab_cfg_folders: "📂 Carpetas & Salida",
+    tab_cfg_dev: "🎨 Revelado & Color",
+    tab_cfg_ai: "🤖 Inteligencia Artificial",
+    tab_cfg_perf: "⚡ Rendimiento",
+    tab_cfg_bursts: "🎯 Agrupación & Ráfagas",
+    cfg_btn_reset: "Restablecer Recomendados",
+    cfg_btn_cancel: "Cancelar",
+    cfg_btn_save: "💾 Guardar Ajustes",
+    shortcuts_title: "Atajos de Teclado Profesionales",
+    shortcuts_close: "Entendido",
+    adj_exposicion: "Exposición",
+    adj_contraste: "Contraste",
+    adj_altas_luces: "Luces / Altas luces",
+    adj_sombras: "Sombras",
+    adj_blancos: "Blancos",
+    adj_negros: "Negros",
+    adj_temperatura: "Temperatura",
+    adj_matiz: "Matiz",
+    adj_intensidad: "Intensidad",
+    adj_saturacion: "Saturación",
+    adj_claridad: "Claridad",
+    adj_enfoque: "Nitidez / Enfoque",
+    adj_reduccion_ruido: "Reducción de Ruido",
+    adj_vineteo: "Viñeteo",
+    toast_saved: "Ajustes guardados con éxito",
+    toast_reexported: "Foto revelada y guardada",
+    toast_copied: "Ajustes copiados al portapapeles",
+    toast_pasted: "Ajustes aplicados",
+    toast_applied_burst: "Ajustes aplicados a toda la ráfaga"
+  },
+  en: {
+    app_title: "CullFlow — AI RAW Studio",
+    header_folder_placeholder: "Choose folder with RAW photos...",
+    header_btn_change: "Change",
+    ai_checking: "AI: Checking…",
+    ai_connected: "AI: Connected",
+    ai_offline: "AI: Offline",
+    ai_standby: "AI: Standby",
+    btn_settings: "⚙️ Settings",
+    btn_output: "📂 Output",
+    btn_process: "▶ Process Photos",
+    btn_cancel: "⏹ Cancel",
+    btn_log: "📋 Log",
+    btn_reprocess: "↻ Re-process",
+    tab_all: "All",
+    tab_picks: "★ Best Picks",
+    tab_bursts: "👥 Bursts",
+    tab_developed: "✓ Developed",
+    search_placeholder: "Search by filename...",
+    status_ready: "Ready",
+    status_inspecting: "Inspecting photos...",
+    status_analyzing: "Analyzing bursts with AI...",
+    status_developing: "Developing RAWs...",
+    empty_analyzing_title: "Analyzing photos in parallel…",
+    empty_analyzing_desc: "Extracting thumbnails and camera EXIF. Shots will populate automatically in real-time.",
+    empty_title: "No folder selected",
+    empty_desc: "Select the folder containing your RAW photos (Sony, Canon, Nikon, Fuji, Leica, Olympus, Panasonic, or DNG). CullFlow groups bursts into intelligent sequences and scores sharpness and open eyes using private local Vision AI.",
+    empty_btn_folder: "📂 Select RAW Folder",
+    empty_btn_cfg: "⚙️ Configure Settings",
+    burst: "Burst",
+    single_shot: "Single shot",
+    photo: "photo",
+    photos: "photos",
+    origin_manual: "manually selected",
+    origin_ai: "AI picked",
+    origin_auto: "auto selected",
+    badge_selected: "★ SELECTED",
+    badge_developed: "✓ DEVELOPED",
+    editor_title: "CULLFLOW STUDIO",
+    btn_reexport: "⚡ Re-export",
+    btn_close: "✕ Close",
+    btn_curtain: "◫ Split Curtain",
+    btn_original_hold: "Hold: Neutral",
+    btn_zebras: "🦓 Zebras",
+    btn_loupe: "🔍 1:1 Loupe",
+    btn_developed_view: "🖼️ Exported",
+    loupe_title: "🔍 100% Real Sensor Pixel Crop (1:1 Loupe)",
+    label_original: "ORIGINAL",
+    label_developed: "DEVELOPED",
+    clip_shadows: "◀ Shadows",
+    clip_highlights: "Highlights ▶",
+    presets_title: "Quick Presets:",
+    preset_keys_hint: "1 click (keys 1-6)",
+    preset_neutral: "Neutral",
+    preset_portrait: "Soft Portrait",
+    preset_landscape: "Vivid Landscape",
+    preset_bw: "Dramatic B&W",
+    preset_golden: "Golden Hour",
+    preset_night: "Clean Night",
+    sec_light: "☀️ Tone & Dynamic Range",
+    sec_color: "🎨 Color & Balance",
+    sec_detail: "🔍 Detail, Optics & Vignette",
+    btn_auto_reset: "↺ Auto",
+    btn_copy: "⎘ Copy",
+    btn_paste: "📋 Paste",
+    btn_apply_burst: "⚡ Apply to Entire Burst",
+    log_title: "CullFlow Event Log",
+    settings_title: "CullFlow Settings",
+    tab_cfg_folders: "📂 Folders & Output",
+    tab_cfg_dev: "🎨 Development & Color",
+    tab_cfg_ai: "🤖 Local Vision AI",
+    tab_cfg_perf: "⚡ Performance",
+    tab_cfg_bursts: "🎯 Grouping & Bursts",
+    cfg_btn_reset: "Reset to Defaults",
+    cfg_btn_cancel: "Cancel",
+    cfg_btn_save: "💾 Save Settings",
+    shortcuts_title: "Pro Keyboard Shortcuts",
+    shortcuts_close: "Got it",
+    adj_exposicion: "Exposure",
+    adj_contraste: "Contrast",
+    adj_altas_luces: "Highlights",
+    adj_sombras: "Shadows",
+    adj_blancos: "Whites",
+    adj_negros: "Blacks",
+    adj_temperatura: "Temperature",
+    adj_matiz: "Tint",
+    adj_intensidad: "Vibrance",
+    adj_saturacion: "Saturation",
+    adj_claridad: "Clarity",
+    adj_enfoque: "Sharpness",
+    adj_reduccion_ruido: "Noise Reduction",
+    adj_vineteo: "Vignette",
+    toast_saved: "Settings saved successfully",
+    toast_reexported: "Photo developed and saved",
+    toast_copied: "Recipe copied to clipboard",
+    toast_pasted: "Recipe applied",
+    toast_applied_burst: "Recipe applied to entire burst"
+  }
+};
+
+let currentLang = localStorage.getItem("cullflow_lang") || (navigator.language.startsWith("es") ? "es" : "en");
+
+function t(key) {
+  if (CullFlowI18N[currentLang] && CullFlowI18N[currentLang][key]) {
+    return CullFlowI18N[currentLang][key];
+  }
+  if (CullFlowI18N["en"] && CullFlowI18N["en"][key]) {
+    return CullFlowI18N["en"][key];
+  }
+  return key;
+}
+
+function setCullFlowLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("cullflow_lang", lang);
+  updateLangUI();
+}
+
+function updateLangUI() {
+  const isEs = currentLang === "es";
+  const btnEs = $("btnLangEs"), btnEn = $("btnLangEn");
+  if (btnEs && btnEn) {
+    btnEs.classList.toggle("active", isEs);
+    btnEn.classList.toggle("active", !isEs);
+  }
+
+  // Update text nodes with data-i18n
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    const val = t(key);
+    if (val) el.textContent = val;
+  });
+
+  // Update placeholders
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    const val = t(key);
+    if (val) el.placeholder = val;
+  });
+
+  // Update titles
+  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    const key = el.getAttribute("data-i18n-title");
+    const val = t(key);
+    if (val) el.title = val;
+  });
+
+  // Re-build sliders with updated language labels
+  if (typeof AJ !== "undefined" && AJ && AJ.length) {
+    construirControlesSliders();
+  }
+
+  // Re-render grid to reflect card headers and badges
+  if (typeof renderizarGrid === "function") {
+    renderizarGrid();
+  }
+}
+
+/* ---------------- INICIALIZACIÓN ---------------- */
+async function iniciar() {
+  updateLangUI();
+  const res = await api("/api/config");
+  AJ = res.ajustes;
+  cfgActual = res.config || {};
+  
+  if (res.entrada) {
+    $("headerPath").textContent = res.entrada;
+  }
+  
+  construirControlesSliders();
+
+  // Eventos de vista previa y cortina
+  $("vista").onload = () => {
+    dibujarHistograma($("vista"));
+    if (modoCortina) aplicarCortina(cortinaPct);
+  };
+
+  const wrap = $("wrapVista");
+  wrap.addEventListener("mousedown", e => {
+    if (modoCortina && e.button === 0) {
+      arrastrandoCortina = true;
+      moverCortina(e);
+      e.preventDefault();
+    }
+  });
+  wrap.addEventListener("mousemove", e => {
+    if (modoCortina) moverCortina(e);
+  });
+  window.addEventListener("mousemove", e => {
+    if (arrastrandoCortina) moverCortina(e);
+  });
+  window.addEventListener("mouseup", () => {
+    arrastrandoCortina = false;
+  });
+
+  // Eventos táctiles
+  wrap.addEventListener("touchstart", e => {
+    if (modoCortina && e.touches.length === 1) {
+      arrastrandoCortina = true;
+      moverCortina(e.touches[0]);
+    }
+  }, { passive: true });
+  wrap.addEventListener("touchmove", e => {
+    if (modoCortina && e.touches.length === 1) {
+      moverCortina(e.touches[0]);
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+  wrap.addEventListener("touchend", () => { arrastrandoCortina = false; });
+
+  // Prevenir arrastre de imágenes
+  $("vista").addEventListener("dragstart", e => e.preventDefault());
+  $("vistaAntes").addEventListener("dragstart", e => e.preventDefault());
+
+  // Lupa 1:1 al hacer clic
+  $("vista").addEventListener("click", e => { if (cursorLupaActivo) hacerZoom(e); });
+
+  // Redimensionado de ventana recalcula el divisor de cortina
+  window.addEventListener("resize", () => {
+    if (modoCortina) aplicarCortina(cortinaPct);
+  });
+
+  // Atajos de teclado globales
+  window.addEventListener("keydown", manejarAtajos);
+
+  if (res.entrada) {
+    await cargarGrupos();
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("editar") && todasFotosPlanitas.length) {
+      const idx = parseInt(urlParams.get("editar")) || 0;
+      const f = todasFotosPlanitas[idx] || todasFotosPlanitas[0];
+      setTimeout(() => abrirEditor(f.clave, f.nombre), 400);
+    }
+  }
+  
+  setInterval(sondear, 1000);
+}
+
+/* ---------------- NAVEGACIÓN Y CARPETAS ---------------- */
+async function elegirCarpeta() {
+  try {
+    const r = await api("/api/carpeta", {});
+    if (r.ruta) {
+      $("headerPath").textContent = r.ruta;
+      await api("/api/abrir", {entrada: r.ruta, salida: "", ia: cfgActual.ia?.activado ?? true});
+      toast("✓ Carpeta cargada: " + r.ruta);
+      await cargarGrupos();
+    }
+  } catch(e) { toast("⚠ " + e.message); }
+}
+
+async function procesar(forzar) {
+  const ent = $("headerPath").textContent;
+  if (!ent || ent.includes("…")) {
+    toast("⚠ Elige una carpeta primero.");
+    elegirCarpeta();
+    return;
+  }
+  $("btnProcesar").disabled = true;
+  $("btnProcesar").textContent = "⏳ Iniciando…";
+  try {
+    await api("/api/procesar", {forzar});
+    toast("▶ Procesamiento iniciado.");
+  } catch(e) {
+    toast("⚠ " + e.message);
+    $("btnProcesar").disabled = false;
+    $("btnProcesar").textContent = "▶ Procesar Fotos";
+  }
+}
+
+async function abrirSalida() {
+  try {
+    await api("/api/abrir_salida", {});
+  } catch(e) { toast("⚠ " + e.message); }
+}
+
+/* ---------------- SONDEO DE PROGRESO Y ESTADO ---------------- */
+let ultimaSondeoGrupos = 0;
+let ultimoTotalHecho = -1;
+
+async function sondear() {
+  let p; try { p = await api("/api/progreso"); } catch(e) { return; }
+  window._ultimoProgresoOcupado = !!p.ocupado;
+  
+  const faseMap = {inactivo:"Listo", analizando:"Analizando fotos en paralelo…", revelando:"Revelando RAWs…", terminado:"Completado", "sin carpeta":"Sin carpeta"};
+  $("faseTxt").textContent = faseMap[p.fase] || p.fase;
+  
+  const pct = p.total ? Math.round((p.hecho / p.total) * 100) : (p.ocupado ? 50 : 0);
+  $("barraFill").style.width = (p.total ? pct : (p.ocupado ? 100 : 0)) + "%";
+  $("progresoDetalle").textContent = p.total ? `${p.hecho}/${p.total} (${pct}%)` : (p.mensaje || "");
+
+  // Estado de la IA
+  if (p.ia && "disponible" in p.ia) {
+    const online = p.ia.disponible;
+    $("aiDot").className = "status-dot " + (online ? "online" : "");
+    $("aiLabel").textContent = online ? ("IA: " + (p.ia.vision ? "Visión Activa" : "Texto")) : "IA: Modo Auto";
+    $("aiStatusPill").title = p.ia.detalle || (online ? "Conectada a " + (cfgActual.ia?.modelo || "LLM") : "No disponible");
+  }
+
+  // Logs
+  $("logContenido").textContent = (p.log || []).join("\n");
+  $("logContenido").scrollTop = 1e9;
+
+  $("btnProcesar").disabled = !!p.ocupado;
+  $("btnProcesar").textContent = p.ocupado ? "⏳ Procesando…" : "▶ Procesar Fotos";
+
+  // Emisión progresiva: a medida que se procesan, las fotos se van mostrando en el grid
+  const ahora = Date.now();
+  if (p.ocupado) {
+    if (p.hecho !== ultimoTotalHecho && (ahora - ultimaSondeoGrupos > 1200)) {
+      ultimoTotalHecho = p.hecho;
+      ultimaSondeoGrupos = ahora;
+      cargarGrupos();
+    }
+  } else {
+    const clave = p.fase + "|" + p.ocupado;
+    if (clave !== ultimaFase) {
+      ultimaFase = clave;
+      cargarGrupos();
+    }
+  }
+}
+
+/* ---------------- RENDERIZADO DEL GRID DE FOTOS ---------------- */
+async function cargarGrupos() {
+  let gs; try { gs = await api("/api/grupos"); } catch(e) { return; }
+  GS = gs;
+  todasFotosPlanitas = [];
+
+  let nTotales = 0, nElegidas = 0, nRafagas = 0, nReveladas = 0;
+  for (const g of gs) {
+    if (g.miembros.length > 1) nRafagas++;
+    for (const m of g.miembros) {
+      nTotales++;
+      if (m.clave === g.elegida) nElegidas++;
+      if (m.revelada) nReveladas++;
+      todasFotosPlanitas.push({ ...m, grupoId: g.id, esElegida: m.clave === g.elegida, grupoTotal: g.miembros.length });
+    }
+  }
+
+  $("cntTodas").textContent = nTotales;
+  $("cntElegidas").textContent = nElegidas;
+  $("cntRafagas").textContent = nRafagas;
+  $("cntReveladas").textContent = nReveladas;
+
+  renderizarGrid();
+}
+
+function setFiltro(f) {
+  filtroActivo = f;
+  document.querySelectorAll(".filter-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.filter === f);
+  });
+  renderizarGrid();
+}
+
+function filtrarFotos() {
+  renderizarGrid();
+}
+
+function renderizarGrid() {
+  const contenedor = $("gridContenedor");
+  const empty = $("emptyState");
+  const q = ($("busqueda").value || "").trim().toLowerCase();
+
+  if (!GS.length) {
+    empty.style.display = "flex";
+    contenedor.style.display = "none";
+    if (window._ultimoProgresoOcupado) {
+      empty.querySelector("h2").textContent = t("empty_analyzing_title");
+      empty.querySelector("p").textContent = t("empty_analyzing_desc");
+    } else {
+      empty.querySelector("h2").textContent = t("empty_title");
+      empty.querySelector("p").textContent = "Selecciona la carpeta donde has volcado tus fotos RAW (Sony, Canon, Nikon, Fujifilm, OM/Olympus, Panasonic, Leica o DNG). CullFlow agrupará las ráfagas en secuencias inteligentes y evaluará nitidez y expresiones con IA local privada.";
+    }
+    return;
+  }
+  empty.style.display = "none";
+  contenedor.style.display = "flex";
+  contenedor.innerHTML = "";
+
+  for (const g of GS) {
+    // Filtrar miembros
+    const visibles = g.miembros.filter(m => {
+      if (q && !m.nombre.toLowerCase().includes(q)) return false;
+      if (filtroActivo === "elegidas" && m.clave !== g.elegida) return false;
+      if (filtroActivo === "rafagas" && g.miembros.length <= 1) return false;
+      if (filtroActivo === "reveladas" && !m.revelada) return false;
+      return true;
+    });
+
+    if (!visibles.length) continue;
+
+    const grupoCard = document.createElement("div");
+    grupoCard.className = "grupo-card";
+
+    const esRafaga = g.miembros.length > 1;
+    const txtOrigen = g.origen === "manual" ? "elegida manualmente" : g.origen === "ia" ? "elegida por IA" : "elegida automática";
+    
+    grupoCard.innerHTML = `
+      <div class="grupo-header">
+        <div class="grupo-title">
+          <span>${esRafaga ? '👥 ' + t('burst') : '📷 ' + t('single_shot')}</span>
+          <span class="grupo-pill">${g.miembros.length} ${g.miembros.length > 1 ? t('photos') : t('photo')}</span>
+          ${esRafaga ? `<span class="grupo-pill" style="color:var(--nikon-gold)">★ ${g.origen === "manual" ? t('origin_manual') : g.origen === "ia" ? t('origin_ai') : t('origin_auto')}</span>` : ""}
+        </div>
+      </div>
+      <div class="grupo-grid"></div>
+    `;
+
+    const grid = grupoCard.querySelector(".grupo-grid");
+    for (const m of visibles) {
+      const card = document.createElement("div");
+      const esEl = m.clave === g.elegida;
+      const esAct = m.clave === actual;
+      card.className = "foto-card" + (esEl ? " elegida" : "") + (esAct ? " activa" : "");
+      
+      const badgeEl = esEl ? `<div class="badge-elegida">★ ${t("badge_selected")}</div>` : "";
+      const badgeRev = m.revelada ? `<div class="badge-revelada" title="Revelada con éxito">✓</div>` : "";
+      const badgeCat = m.categoria ? `<div class="badge-cat" title="Categoría IA: ${m.categoria}">${m.categoria}</div>` : "";
+      const tipoRaw = m.pareja ? "RAW+JPG" : (m.nombre.endsWith(".jpg") || m.nombre.endsWith(".JPG") ? "JPG" : "RAW");
+
+      card.innerHTML = `
+        <div class="foto-thumb-wrap">
+          <img loading="lazy" src="${url("/mini/", m.clave)}" alt="${m.nombre}">
+          ${badgeEl}
+          ${badgeRev}
+          ${badgeCat}
+          <div class="badge-raw">${tipoRaw}</div>
+        </div>
+        <div class="foto-info">
+          <div class="foto-name" title="${m.nombre}">${m.nombre}</div>
+          <div class="foto-meta">
+            <span>Nitidez ${m.nitidez}</span>
+            <span>Punt. ${m.puntuacion.toFixed(2)}</span>
+          </div>
+        </div>
+      `;
+
+      card.onclick = () => abrirEditor(m.clave, m.nombre);
+      card.ondblclick = async () => {
+        if (g.miembros.length > 1 && m.clave !== g.elegida) {
+          await api("/api/elegir", {grupo: g.id, clave: m.clave});
+          toast(`★ ${m.nombre} marcada como elegida`);
+          await cargarGrupos();
+        }
+      };
+
+      grid.appendChild(card);
+    }
+
+    contenedor.appendChild(grupoCard);
+  }
+}
+
+/* ---------------- EDITOR DE REVELADO FOTOGRÁFICO ---------------- */
+async function abrirEditor(clave, nombre) {
+  actual = clave;
+  $("modalEditor").classList.add("open");
+  $("edNombre").textContent = nombre;
+  $("edOrigenBadge").textContent = "Cargando…";
+
+  // Actualizar contador 'Foto X de Y'
+  const idx = todasFotosPlanitas.findIndex(f => f.clave === actual);
+  if (idx !== -1) {
+    $("edContadorFotos").textContent = `Foto ${idx + 1} de ${todasFotosPlanitas.length}`;
+  } else {
+    $("edContadorFotos").textContent = nombre;
+  }
+
+  document.querySelectorAll(".foto-card").forEach(c => c.classList.remove("activa"));
+  renderizarGrid();
+  cerrarZoom();
+  if (modoCortina) toggleCortina(false);
+  cacheNeutroClave = null;
+  cacheNeutroBlob = null;
+
+  // Cargar metadatos y ajustes
+  const r = await api(url("/api/ajustes/", clave));
+  valores = {...r.final};
+
+  const origenTxt = {auto:"Automático", ia:"Propuesto por IA", manual:"Personalizado"}[r.origen] || r.origen;
+  $("edOrigenBadge").textContent = origenTxt;
+  $("edOrigenBadge").title = r.nota || "";
+
+  // Renderizar pills de metadatos EXIF
+  renderizarExif(r);
+
+  sincronizarSlidersUI(r.auto);
+  actualizarVista();
+  precargarNeutro(clave);
+}
+
+function renderizarExif(r) {
+  const f = todasFotosPlanitas.find(x => x.clave === actual);
+  const cont = $("edExif");
+  cont.innerHTML = "";
+  if (!f) return;
+
+  const chips = [];
+  if (r && r.categoria) chips.push(`🏷️ <strong>${r.categoria.toUpperCase()}</strong>`);
+  if (f.picture_control) chips.push(`🎨 [${f.picture_control}]`);
+  if (f.caras) chips.push(`👤 ${f.caras} cara(s)`);
+  chips.push(`Punt: <strong>${f.puntuacion.toFixed(2)}</strong>`);
+  chips.push(`Nitidez: <strong>${f.nitidez}</strong>`);
+  if (r && r.tags && r.tags.length) chips.push(`🏷️ ${r.tags.join(", ")}`);
+
+  cont.innerHTML = chips.map(c => `<div class="exif-chip">${c}</div>`).join("");
+}
+
+function cerrarEditor() {
+  if (modoCortina) toggleCortina(false);
+  $("modalEditor").classList.remove("open");
+  actual = null;
+  cacheNeutroClave = null;
+  cacheNeutroBlob = null;
+  cerrarZoom();
+  renderizarGrid();
+}
+
+function navegarFoto(dir) {
+  if (!todasFotosPlanitas.length || !actual) return;
+  const idx = todasFotosPlanitas.findIndex(f => f.clave === actual);
+  if (idx === -1) return;
+  const nuevoIdx = (idx + dir + todasFotosPlanitas.length) % todasFotosPlanitas.length;
+  const f = todasFotosPlanitas[nuevoIdx];
+  abrirEditor(f.clave, f.nombre);
+}
+
+function construirControlesSliders() {
+  const divLuz = $("controlesLuz"), divColor = $("controlesColor"), divDetalle = $("controlesDetalle");
+  divLuz.innerHTML = ""; divColor.innerHTML = ""; divDetalle.innerHTML = "";
+
+  const gruposCat = {
+    luz: ["exposicion", "contraste", "altas_luces", "sombras", "blancos", "negros"],
+    color: ["temperatura", "matiz", "intensidad", "saturacion"],
+    detalle: ["claridad", "enfoque", "reduccion_ruido", "vineteo"]
+  };
+
+  for (const a of AJ) {
+    const row = document.createElement("div");
+    row.className = "control-row";
+    const etiqueta = t("adj_" + a.clave) || a.etiqueta;
+    row.innerHTML = `
+      <span class="control-label" title="${etiqueta}">${etiqueta}</span>
+      <input type="range" id="sl_${a.clave}" min="${a.min}" max="${a.max}" step="${a.paso}" value="0">
+      <span class="control-value" id="val_${a.clave}">0</span>
+    `;
+
+    const sl = row.querySelector("input"), txt = row.querySelector(".control-value");
+    sl.oninput = () => {
+      valores[a.clave] = +sl.value;
+      txt.textContent = (+sl.value).toFixed(a.paso < 1 ? 2 : 0);
+      programarVista();
+    };
+
+    if (gruposCat.luz.includes(a.clave)) divLuz.appendChild(row);
+    else if (gruposCat.color.includes(a.clave)) divColor.appendChild(row);
+    else divDetalle.appendChild(row);
+  }
+}
+
+function sincronizarSlidersUI(auto) {
+  for (const a of AJ) {
+    const sl = $(`sl_${a.clave}`), txt = $(`val_${a.clave}`);
+    if (sl && txt) {
+      sl.value = valores[a.clave] ?? 0;
+      txt.textContent = (+sl.value).toFixed(a.paso < 1 ? 2 : 0);
+      sl.ondblclick = () => {
+        if (auto) {
+          sl.value = auto[a.clave] ?? 0;
+          sl.oninput();
+        }
+      };
+    }
+  }
+}
+
+function programarVista() {
+  clearTimeout(temporizador);
+  temporizador = setTimeout(actualizarVista, 200);
+}
+
+async function actualizarVista(aj) {
+  if (!actual) return;
+  const b = await api("/api/vista", {clave: actual, ajustes: aj || valores, lado: 1600, clipping: modoClipping});
+  const v = $("vista");
+  if (v.src.startsWith("blob:")) URL.revokeObjectURL(v.src);
+  v.src = URL.createObjectURL(b);
+  v.onload = () => {
+    dibujarHistograma(v);
+    if (modoCortina) aplicarCortina(cortinaPct);
+  };
+}
+
+/* ---------------- HISTOGRAMA INTERACTIVO ---------------- */
+function dibujarHistograma(imgElement) {
+  const canvas = $("canvasHist");
+  if (!canvas || !imgElement || !imgElement.naturalWidth) return;
+  const offscreen = document.createElement("canvas");
+  offscreen.width = 220; offscreen.height = 64;
+  const octx = offscreen.getContext("2d");
+  octx.drawImage(imgElement, 0, 0, 220, 64);
+  let data;
+  try { data = octx.getImageData(0, 0, 220, 64).data; } catch(e) { return; }
+
+  const r = new Uint32Array(256), g = new Uint32Array(256), b = new Uint32Array(256), lum = new Uint32Array(256);
+  let maxVal = 1, quemados = 0, empastados = 0;
+  const total = data.length / 4;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const rv = data[i], gv = data[i+1], bv = data[i+2];
+    r[rv]++; g[gv]++; b[bv]++;
+    const l = Math.round(0.2126 * rv + 0.7152 * gv + 0.0722 * bv);
+    lum[l]++;
+    if (rv >= 253 && gv >= 253 && bv >= 253) quemados++;
+    if (rv <= 2 && gv <= 2 && bv <= 2) empastados++;
+  }
+  for (let i = 1; i < 255; i++) {
+    if (r[i] > maxVal) maxVal = r[i];
+    if (g[i] > maxVal) maxVal = g[i];
+    if (b[i] > maxVal) maxVal = b[i];
+    if (lum[i] > maxVal) maxVal = lum[i];
+  }
+
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#0f131a"; ctx.fillRect(0, 0, W, H);
+
+  // Cuadrícula fotográfica de zonas
+  ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.25, 0); ctx.lineTo(W * 0.25, H);
+  ctx.moveTo(W * 0.50, 0); ctx.lineTo(W * 0.50, H);
+  ctx.moveTo(W * 0.75, 0); ctx.lineTo(W * 0.75, H);
+  ctx.stroke();
+
+  function trazar(hist, trazo, relleno) {
+    ctx.beginPath(); ctx.moveTo(0, H);
+    for (let i = 0; i < 256; i++) {
+      const x = (i / 255) * W;
+      const y = H - Math.min(H, (hist[i] / maxVal) * H * 0.95);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H);
+    if (relleno) { ctx.fillStyle = relleno; ctx.fill(); }
+    ctx.strokeStyle = trazo; ctx.lineWidth = 1.3; ctx.stroke();
+  }
+
+  trazar(lum, "rgba(240, 240, 240, 0.45)", "rgba(200, 200, 200, 0.1)");
+  trazar(r, "rgba(239, 68, 68, 0.8)", "rgba(239, 68, 68, 0.1)");
+  trazar(g, "rgba(34, 197, 94, 0.8)", "rgba(34, 197, 94, 0.1)");
+  trazar(b, "rgba(59, 130, 246, 0.9)", "rgba(59, 130, 246, 0.12)");
+
+  const pQuem = ((quemados / total) * 100).toFixed(1);
+  const pEmp = ((empastados / total) * 100).toFixed(1);
+  $("clipSombras").style.opacity = pEmp > 0.1 ? "1" : "0.35";
+  $("clipAltas").style.opacity = pQuem > 0.1 ? "1" : "0.35";
+  $("clipSombras").title = `Negros empastados: ${pEmp}% (clic para activar zebras)`;
+  $("clipAltas").title = `Altas luces quemadas: ${pQuem}% (clic para activar zebras)`;
+}
+
+/* ---------------- CORTINA & ZEBRAS & LUPA ---------------- */
+function toggleClipping() {
+  modoClipping = !modoClipping;
+  $("btnClip").classList.toggle("active", modoClipping);
+  actualizarVista();
+}
+
+async function precargarNeutro(clave) {
+  if (!clave || (cacheNeutroClave === clave && cacheNeutroBlob)) return;
+  const n = {};
+  AJ.forEach(a => n[a.clave] = 0);
+  try {
+    const blob = await api("/api/vista", {clave: clave, ajustes: n, lado: 1600, clipping: false});
+    if (actual === clave) {
+      cacheNeutroClave = clave;
+      cacheNeutroBlob = blob;
+      const va = $("vistaAntes");
+      if (va.src.startsWith("blob:")) URL.revokeObjectURL(va.src);
+      va.src = URL.createObjectURL(blob);
+      if (modoCortina) {
+        va.style.display = "block";
+        aplicarCortina(cortinaPct);
+      }
+    }
+  } catch(e) {
+    console.warn("No se pudo precargar neutro:", e);
+  }
+}
+
+async function toggleCortina(forzar) {
+  modoCortina = typeof forzar === "boolean" ? forzar : !modoCortina;
+  $("btnCortina").classList.toggle("active", modoCortina);
+
+  const wrap = $("wrapVista");
+  const vista = $("vista");
+  const va = $("vistaAntes");
+  const sep = $("separadorCortina");
+  const etiqA = $("etiqAntes");
+  const etiqD = $("etiqDespues");
+
+  if (modoCortina) {
+    if (cursorLupaActivo) desactivarLupaCursor();
+    wrap.style.cursor = "ew-resize";
+    vista.style.cursor = "ew-resize";
+    sep.style.display = "block";
+    etiqA.style.display = "block";
+    etiqD.style.display = "block";
+
+    if (cacheNeutroClave === actual && cacheNeutroBlob) {
+      if (va.src.startsWith("blob:")) URL.revokeObjectURL(va.src);
+      va.src = URL.createObjectURL(cacheNeutroBlob);
+      va.style.display = "block";
+      aplicarCortina(cortinaPct);
+    } else {
+      toast("Cargando original para la cortina…");
+      await precargarNeutro(actual);
+      if (modoCortina) {
+        va.style.display = "block";
+        aplicarCortina(cortinaPct);
+      }
+    }
+  } else {
+    wrap.style.cursor = "default";
+    vista.style.cursor = "default";
+    va.style.display = "none";
+    sep.style.display = "none";
+    etiqA.style.display = "none";
+    etiqD.style.display = "none";
+    vista.style.clipPath = "none";
+    vista.style.webkitClipPath = "none";
+  }
+}
+
+function moverCortina(e) {
+  if (!modoCortina) return;
+  const v = $("vista");
+  if (!v) return;
+  const rect = v.getBoundingClientRect();
+  if (rect.width <= 0) return;
+  const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+  const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+  cortinaPct = (x / rect.width) * 100;
+  aplicarCortina(cortinaPct);
+}
+
+function aplicarCortina(pct) {
+  const v = $("vista");
+  const wrap = $("wrapVista");
+  const sep = $("separadorCortina");
+  const va = $("vistaAntes");
+  if (!v || !wrap || !sep) return;
+
+  const vRect = v.getBoundingClientRect();
+  const wRect = wrap.getBoundingClientRect();
+  if (vRect.width <= 0 || vRect.height <= 0) return;
+
+  const p = Math.max(0, Math.min(100, pct));
+  const photoLeft = vRect.left - wRect.left;
+  const photoTop = vRect.top - wRect.top;
+  const sepX = photoLeft + (p / 100) * vRect.width;
+
+  // 1. Separador vertical alineado al rectángulo real de la foto
+  sep.style.left = sepX + "px";
+  sep.style.top = photoTop + "px";
+  sep.style.height = vRect.height + "px";
+
+  // 2. Alinear la imagen original (#vistaAntes) exactamente con la foto revelada (#vista)
+  if (va) {
+    va.style.left = photoLeft + "px";
+    va.style.top = photoTop + "px";
+    va.style.width = vRect.width + "px";
+    va.style.height = vRect.height + "px";
+  }
+
+  // 3. Recortar la parte izquierda de #vista (0 a p%) para dejar ver #vistaAntes (debajo)
+  const poly = `polygon(${p}% 0, 100% 0, 100% 100%, ${p}% 100%)`;
+  v.style.clipPath = poly;
+  v.style.webkitClipPath = poly;
+
+  // 4. Posicionar etiquetas en las esquinas inferiores del marco de la foto
+  const etiqAntes = $("etiqAntes");
+  const etiqDesp = $("etiqDespues");
+  if (etiqAntes && etiqDesp) {
+    const bDist = (wRect.bottom - vRect.bottom + 12) + "px";
+    etiqAntes.style.bottom = bDist;
+    etiqAntes.style.left = (photoLeft + 14) + "px";
+    etiqDesp.style.bottom = bDist;
+    etiqDesp.style.right = (wRect.right - vRect.right + 14) + "px";
+  }
+}
+
+let cursorLupaActivo = false;
+
+function desactivarLupaCursor() {
+  cursorLupaActivo = false;
+  if ($("wrapVista")) $("wrapVista").style.cursor = modoCortina ? "ew-resize" : "default";
+  if ($("vista")) $("vista").style.cursor = modoCortina ? "ew-resize" : "default";
+}
+
+function activarLupa() {
+  if (modoCortina) toggleCortina(false);
+  cursorLupaActivo = true;
+  $("wrapVista").style.cursor = "crosshair";
+  $("vista").style.cursor = "crosshair";
+  toast("🔍 Haz clic en el sujeto para inspeccionar el foco al 100% (Lupa 1:1)");
+}
+
+function getImgRelativeCoords(e, img) {
+  const rect = img.getBoundingClientRect();
+  const nw = img.naturalWidth || rect.width;
+  const nh = img.naturalHeight || rect.height;
+  const imgRatio = nw / nh;
+  const boxRatio = rect.width / rect.height;
+  let rW, rH, oX, oY;
+  if (boxRatio > imgRatio) {
+    rH = rect.height;
+    rW = rect.height * imgRatio;
+    oX = (rect.width - rW) / 2;
+    oY = 0;
+  } else {
+    rW = rect.width;
+    rH = rect.width / imgRatio;
+    oX = 0;
+    oY = (rect.height - rH) / 2;
+  }
+  const x = e.clientX - rect.left - oX;
+  const y = e.clientY - rect.top - oY;
+  return {
+    relX: Math.max(0, Math.min(1, x / rW)),
+    relY: Math.max(0, Math.min(1, y / rH))
+  };
+}
+
+async function hacerZoom(e) {
+  if (!actual) return;
+  cursorLupaActivo = false;
+  $("wrapVista").style.cursor = "default";
+  $("vista").style.cursor = "default";
+  const { relX, relY } = getImgRelativeCoords(e, $("vista"));
+  $("zoomOverlay").style.display = "flex";
+  $("zoomImg").src = "";
+  try {
+    const blob = await api("/api/recorte", {clave: actual, x: relX, y: relY, tam: 550, ajustes: valores});
+    $("zoomImg").src = URL.createObjectURL(blob);
+  } catch(err) {
+    toast("⚠ " + err.message);
+    cerrarZoom();
+  }
+}
+
+function cerrarZoom() {
+  $("zoomOverlay").style.display = "none";
+  $("wrapVista").style.cursor = "default";
+  $("vista").style.cursor = "default";
+}
+
+/* ---------------- PRESETS RÁPIDOS ---------------- */
+const PRESETS = {
+  neutro: {exposicion:0, temperatura:0, matiz:0, contraste:0, altas_luces:0, sombras:0, blancos:0, negros:0, claridad:0, intensidad:0, saturacion:0, vineteo:0, reduccion_ruido:0, enfoque:0},
+  retrato: {exposicion:0.15, temperatura:3, matiz:0, contraste:6, altas_luces:-12, sombras:16, blancos:0, negros:-6, claridad:-10, intensidad:8, saturacion:4, vineteo:-12, reduccion_ruido:30, enfoque:18},
+  paisaje: {exposicion:0.10, temperatura:0, matiz:0, contraste:18, altas_luces:-25, sombras:18, blancos:6, negros:-12, claridad:18, intensidad:22, saturacion:12, vineteo:10, reduccion_ruido:10, enfoque:25},
+  bn: {exposicion:0.0, temperatura:0, matiz:0, contraste:28, altas_luces:-15, sombras:12, blancos:8, negros:-18, claridad:22, intensidad:0, saturacion:-100, vineteo:-18, reduccion_ruido:15, enfoque:25},
+  dorada: {exposicion:0.10, temperatura:18, matiz:4, contraste:12, altas_luces:-30, sombras:12, blancos:0, negros:-8, claridad:10, intensidad:16, saturacion:8, vineteo:-8, reduccion_ruido:15, enfoque:20},
+  noche: {exposicion:0.0, temperatura:0, matiz:0, contraste:12, altas_luces:0, sombras:0, blancos:0, negros:-10, claridad:8, intensidad:10, saturacion:0, vineteo:5, reduccion_ruido:60, enfoque:15}
+};
+
+function aplicarPreset(nombre) {
+  if (!PRESETS[nombre]) return;
+  valores = {...valores, ...PRESETS[nombre]};
+  sincronizarSlidersUI();
+  programarVista();
+  toast(`✓ Preset aplicado: ${nombre.toUpperCase()}`);
+}
+
+/* ---------------- ACCIONES: COPIAR/PEGAR/EXPORTAR ---------------- */
+function copiarAjustes() {
+  if (!actual) return;
+  localStorage.setItem("nikon_studio_clip", JSON.stringify(valores));
+  toast("✓ Ajustes copiados al portapapeles");
+}
+
+function pegarAjustes() {
+  if (!actual) return;
+  const raw = localStorage.getItem("nikon_studio_clip");
+  if (!raw) { toast("⚠ Copia los ajustes de otra foto primero"); return; }
+  try {
+    valores = {...valores, ...JSON.parse(raw)};
+    sincronizarSlidersUI();
+    programarVista();
+    toast("✓ Ajustes pegados en esta toma");
+  } catch(e) { toast("⚠ Error: " + e.message); }
+}
+
+async function pegarEnGrupo() {
+  if (!actual) return;
+  const raw = localStorage.getItem("nikon_studio_clip");
+  const aj = raw ? JSON.parse(raw) : valores;
+  const g = GS.find(grp => grp.miembros.some(m => m.clave === actual));
+  if (!g) return;
+  const claves = g.miembros.map(m => m.clave);
+  try {
+    await api("/api/ajustes/lote", {claves, ajustes: aj});
+    toast(`✓ Aplicado a las ${claves.length} fotos de la ráfaga`);
+    abrirEditor(actual, $("edNombre").textContent);
+  } catch(e) { toast("⚠ " + e.message); }
+}
+
+let neutro = null;
+function verAntes(si) {
+  if (!actual) return;
+  const va = $("vistaAntes");
+  const v = $("vista");
+  const wrap = $("wrapVista");
+  if (si) {
+    if (cacheNeutroBlob) {
+      if (va.src.startsWith("blob:")) URL.revokeObjectURL(va.src);
+      va.src = URL.createObjectURL(cacheNeutroBlob);
+      const vRect = v.getBoundingClientRect();
+      const wRect = wrap.getBoundingClientRect();
+      va.style.left = (vRect.left - wRect.left) + "px";
+      va.style.top = (vRect.top - wRect.top) + "px";
+      va.style.width = vRect.width + "px";
+      va.style.height = vRect.height + "px";
+      va.style.zIndex = "10";
+      va.style.display = "block";
+    } else {
+      const n = {}; AJ.forEach(a => n[a.clave] = 0);
+      actualizarVista(n);
+    }
+    neutro = true;
+  } else if (neutro) {
+    neutro = null;
+    va.style.zIndex = "1";
+    va.style.display = modoCortina ? "block" : "none";
+    if (modoCortina) aplicarCortina(cortinaPct);
+    if (!cacheNeutroBlob) actualizarVista();
+  }
+}
+
+function verRevelada() {
+  if (actual) window.open(url("/revelada/", actual), "_blank");
+}
+
+async function exportar() {
+  try {
+    await api("/api/exportar", {clave: actual, ajustes: valores});
+    toast("✓ Foto re-exportada en alta resolución");
+  } catch(e) { toast("⚠ " + e.message); }
+}
+
+async function restablecer() {
+  await api("/api/restablecer", {clave: actual});
+  abrirEditor(actual, $("edNombre").textContent);
+  toast("↺ Valores automáticos restablecidos");
+}
+
+function toggleLog() {
+  $("logDrawer").classList.toggle("open");
+}
+
+/* ---------------- ATAJOS DE TECLADO ---------------- */
+function manejarAtajos(e) {
+  // Ignorar si el usuario está escribiendo en un input
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+    if (e.key === "Escape") document.activeElement.blur();
+    return;
+  }
+
+  if (e.key === "ArrowLeft") { navegarFoto(-1); e.preventDefault(); }
+  else if (e.key === "ArrowRight") { navegarFoto(1); e.preventDefault(); }
+  else if (e.key === " " && actual) { e.preventDefault(); if ($("zoomOverlay").style.display === "flex") cerrarZoom(); else activarLupa(); }
+  else if (e.key.toLowerCase() === "c" && actual) { toggleCortina(); }
+  else if (e.key.toLowerCase() === "z" && actual) { toggleClipping(); }
+  else if (e.key.toLowerCase() === "p" && actual) {
+    const g = GS.find(grp => grp.miembros.some(m => m.clave === actual));
+    if (g && g.miembros.length > 1) {
+      api("/api/elegir", {grupo: g.id, clave: actual}).then(() => {
+        toast(`★ ${$("edNombre").textContent} elegida`);
+        cargarGrupos();
+      });
+    }
+  }
+  else if (e.key.toLowerCase() === "e" && actual) { exportar(); }
+  else if (e.key >= "1" && e.key <= "6" && actual) {
+    const presetsList = ["neutro", "retrato", "paisaje", "bn", "dorada", "noche"];
+    aplicarPreset(presetsList[parseInt(e.key) - 1]);
+  }
+  else if (e.key === "Escape") {
+    if ($("zoomOverlay").style.display === "flex") {
+      cerrarZoom();
+    } else if ($("modalAtajos").classList.contains("open")) {
+      cerrarAtajos();
+    } else if ($("modalAjustes").classList.contains("open")) {
+      cerrarAjustes();
+    } else if ($("modalEditor").classList.contains("open")) {
+      cerrarEditor();
+    } else if ($("logDrawer").classList.contains("open")) {
+      toggleLog();
+    }
+  }
+  else if (e.key === "?" || (e.shiftKey && e.key === "?")) {
+    abrirAtajos();
+  }
+}
+
+function abrirAtajos() { $("modalAtajos").classList.add("open"); }
+function cerrarAtajos() { $("modalAtajos").classList.remove("open"); }
+
+/* ---------------- GESTIÓN DEL MODAL DE AJUSTES ---------------- */
+function abrirAjustes() {
+  $("modalAjustes").classList.add("open");
+  cargarValoresEnFormularioAjustes(cfgActual);
+}
+function cerrarAjustes() { $("modalAjustes").classList.remove("open"); }
+
+function setAjustesTab(tabId) {
+  document.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
+  document.querySelectorAll(".cfg-panel").forEach(p => p.classList.toggle("active", p.id === tabId));
+}
+
+function cargarValoresEnFormularioAjustes(c) {
+  if (!c) return;
+  // Carpetas
+  $("cfg_entrada").value = c.carpetas?.entrada || "";
+  $("cfg_salida").value = c.carpetas?.salida || "";
+  $("cfg_formato_salida").value = c.revelado?.formato_salida || "jpeg";
+  $("cfg_calidad_jpeg").value = c.revelado?.calidad_jpeg ?? 95;
+  $("val_calidad_jpeg").textContent = c.revelado?.calidad_jpeg ?? 95;
+  $("cfg_calidad_webp").value = c.revelado?.calidad_webp ?? 90;
+  $("val_calidad_webp").textContent = c.revelado?.calidad_webp ?? 90;
+  $("cfg_guardar_tiff16").checked = !!c.revelado?.guardar_tiff16;
+  $("cfg_xmp_junto_al_original").checked = !!c.revelado?.xmp_junto_al_original;
+
+  // Revelado
+  $("cfg_demosaic").value = c.revelado?.demosaic || "aahd";
+  $("cfg_corregir_aberraciones").checked = c.revelado?.corregir_aberraciones !== false;
+  $("cfg_incrustar_icc").checked = c.revelado?.incrustar_icc !== false;
+  $("cfg_preferir_jpg_camara").checked = !!c.revelado?.preferir_jpg_camara;
+  $("cfg_intensidad_auto").value = c.revelado?.intensidad_auto ?? 100;
+  $("val_intensidad_auto").textContent = c.revelado?.intensidad_auto ?? 100;
+  $("cfg_max_lado").value = c.revelado?.max_lado || "";
+
+  // IA
+  $("cfg_ia_activado").checked = c.ia?.activado !== false;
+  $("cfg_ia_api_base").value = c.ia?.api_base || "";
+  $("cfg_ia_modelo").value = c.ia?.modelo || "";
+  $("cfg_ia_api_key").value = c.ia?.api_key || "";
+  $("cfg_ia_concurrencia").value = c.ia?.concurrencia ?? 2;
+  $("val_ia_concurrencia").textContent = c.ia?.concurrencia ?? 2;
+  $("cfg_ia_usar_imagen").value = c.ia?.usar_imagen || "auto";
+  $("cfg_ia_elegir_mejor").checked = c.ia?.elegir_mejor !== false;
+  $("cfg_ia_sin_razonamiento").checked = c.ia?.desactivar_razonamiento !== false;
+
+  // Rendimiento
+  $("cfg_trabajadores").value = c.rendimiento?.trabajadores ?? 0;
+  $("cfg_trabajadores_analisis").value = c.rendimiento?.trabajadores_analisis ?? 0;
+
+  // Agrupación
+  $("cfg_segundos_max").value = c.agrupacion?.segundos_max_entre_fotos ?? 30;
+  $("cfg_umbral_similitud").value = c.agrupacion?.umbral_similitud ?? 0.80;
+  $("val_umbral_similitud").textContent = parseFloat(c.agrupacion?.umbral_similitud ?? 0.80).toFixed(2);
+  $("cfg_detectar_caras").checked = c.seleccion?.detectar_caras !== false;
+  $("cfg_peso_nitidez").value = c.seleccion?.peso_nitidez ?? 0.55;
+  $("val_peso_nitidez").textContent = Math.round((c.seleccion?.peso_nitidez ?? 0.55) * 100) + "%";
+  $("cfg_peso_ojos").value = c.seleccion?.peso_ojos ?? 0.15;
+  $("val_peso_ojos").textContent = Math.round((c.seleccion?.peso_ojos ?? 0.15) * 100) + "%";
+}
+
+async function guardarAjustes() {
+  const datos = {
+    carpetas: {
+      entrada: $("cfg_entrada").value.trim(),
+      salida: $("cfg_salida").value.trim()
+    },
+    revelado: {
+      formato_salida: $("cfg_formato_salida").value,
+      calidad_jpeg: parseInt($("cfg_calidad_jpeg").value),
+      calidad_webp: parseInt($("cfg_calidad_webp").value),
+      guardar_tiff16: $("cfg_guardar_tiff16").checked,
+      xmp_junto_al_original: $("cfg_xmp_junto_al_original").checked,
+      demosaic: $("cfg_demosaic").value,
+      corregir_aberraciones: $("cfg_corregir_aberraciones").checked,
+      incrustar_icc: $("cfg_incrustar_icc").checked,
+      preferir_jpg_camara: $("cfg_preferir_jpg_camara").checked,
+      intensidad_auto: parseFloat($("cfg_intensidad_auto").value),
+      max_lado: parseInt($("cfg_max_lado").value || 0)
+    },
+    ia: {
+      activado: $("cfg_ia_activado").checked,
+      api_base: $("cfg_ia_api_base").value.trim(),
+      modelo: $("cfg_ia_modelo").value.trim(),
+      api_key: $("cfg_ia_api_key").value.trim(),
+      concurrencia: parseInt($("cfg_ia_concurrencia").value),
+      usar_imagen: $("cfg_ia_usar_imagen").value,
+      elegir_mejor: $("cfg_ia_elegir_mejor").checked,
+      desactivar_razonamiento: $("cfg_ia_sin_razonamiento").checked
+    },
+    rendimiento: {
+      trabajadores: parseInt($("cfg_trabajadores").value),
+      trabajadores_analisis: parseInt($("cfg_trabajadores_analisis").value)
+    },
+    agrupacion: {
+      segundos_max_entre_fotos: parseFloat($("cfg_segundos_max").value || 30),
+      umbral_similitud: parseFloat($("cfg_umbral_similitud").value || 0.80)
+    },
+    seleccion: {
+      detectar_caras: $("cfg_detectar_caras").checked,
+      peso_nitidez: parseFloat($("cfg_peso_nitidez").value || 0.55),
+      peso_ojos: parseFloat($("cfg_peso_ojos").value || 0.15)
+    }
+  };
+
+  try {
+    const res = await api("/api/config", datos);
+    cfgActual = res.config;
+    cerrarAjustes();
+    toast("✓ Ajustes guardados correctamente en config.ini");
+  } catch(e) {
+    toast("⚠ Error al guardar: " + e.message);
+  }
+}
+
+async function probarConexionIA() {
+  toast("⏳ Probando conexión con el servidor IA…");
+  try {
+    const r = await api("/api/probar_ia", {
+      ia_activado: $("cfg_ia_activado").checked,
+      api_base: $("cfg_ia_api_base").value.trim(),
+      modelo: $("cfg_ia_modelo").value.trim(),
+      api_key: $("cfg_ia_api_key").value.trim()
+    });
+    if (r.disponible) {
+      alert(`✓ ¡Conexión con IA exitosa!\n\nModelo: ${$("cfg_ia_modelo").value}\nVisión de imágenes: ${r.vision ? "Activada" : "Solo texto"}`);
+    } else {
+      alert(`⚠ No se pudo conectar con el modelo:\n${r.detalle || "Sin respuesta del servidor"}`);
+    }
+  } catch(e) {
+    alert("⚠ Error: " + e.message);
+  }
+}
+
+function restablecerAjustesRecomendados() {
+  if (!confirm("¿Restablecer los valores recomendados por defecto?")) return;
+  $("cfg_formato_salida").value = "jpeg";
+  $("cfg_calidad_jpeg").value = 95;
+  $("val_calidad_jpeg").textContent = "95";
+  $("cfg_calidad_webp").value = 90;
+  $("val_calidad_webp").textContent = "90";
+  $("cfg_guardar_tiff16").checked = false;
+  $("cfg_demosaic").value = "aahd";
+  $("cfg_corregir_aberraciones").checked = true;
+  $("cfg_incrustar_icc").checked = true;
+  $("cfg_preferir_jpg_camara").checked = false;
+  $("cfg_ia_concurrencia").value = 2;
+  $("val_ia_concurrencia").textContent = "2";
+  $("cfg_trabajadores").value = 0;
+  $("cfg_trabajadores_analisis").value = 0;
+  $("cfg_umbral_similitud").value = 0.80;
+  $("val_umbral_similitud").textContent = "0.80";
+  toast("Valores por defecto cargados en el formulario");
+}
+
+// Scroll suave en ajustes con rueda del ratón desde cualquier punto del modal
+const modalAj = $("modalAjustes");
+if (modalAj) {
+  modalAj.addEventListener("wheel", (e) => {
+    const activeContent = modalAj.querySelector(".modal-content");
+    if (activeContent) {
+      activeContent.scrollTop += e.deltaY;
+    }
+  }, { passive: true });
+}
+
+iniciar();
+</script>
+</body>
+</html>
